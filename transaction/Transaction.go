@@ -19,6 +19,7 @@ import (
 
 // 交易相关
 
+// Transaction 交易结构
 type Transaction struct {
 	// tx hash(交易的唯一标识)
 	TxHash []byte
@@ -48,10 +49,8 @@ func (tx *Transaction) HashTransaction() {
 func NewCoinbaseTransaction(address string) *Transaction {
 	// 输入
 	txInput := &TxInput{[]byte{}, -1, nil, nil}
-
 	// 输出
 	txOutput := NewTXOutput(10, address)
-
 	txCoinbase := &Transaction{nil, []*TxInput{txInput}, []*TxOutput{txOutput}}
 	// hash
 	txCoinbase.HashTransaction()
@@ -75,7 +74,6 @@ func NewSimpleTransaction(from string, to string, amount int, blockchain *blockc
 		fmt.Printf("indexArray : %v\n", indexArray)
 		txHashBytes, _ := hex.DecodeString(txHash)
 		for _, index := range indexArray {
-
 			// 此处的输出是需要消费的，必然会被其它的交易的输入所引用
 			txInput := &TxInput{txHashBytes, index, nil, wallet.PublicKey}
 			txInputs = append(txInputs, txInput)
@@ -86,10 +84,8 @@ func NewSimpleTransaction(from string, to string, amount int, blockchain *blockc
 	txOutput := NewTXOutput(int64(amount), to)
 	txOutputs = append(txOutputs, txOutput)
 	// 找零
-
 	txOutput = NewTXOutput(money-int64(amount), from)
 	txOutputs = append(txOutputs, txOutput)
-
 	// 生成交易
 	tx := &Transaction{nil, txInputs, txOutputs}
 	tx.HashTransaction()
@@ -138,7 +134,6 @@ func (tx *Transaction) Sign(privKey ecdsa.PrivateKey, prevTxs map[string]Transac
 		// ECDSA的签名算法就是一对数字
 		// Sig = (R,S)
 		signature := append(r.Bytes(), s.Bytes()...)
-
 		tx.Vins[vin_id].Signature = signature
 	}
 }
@@ -189,7 +184,6 @@ func (tx *Transaction) Verify(prevTxs map[string]Transaction) bool {
 	}
 
 	txCopy := tx.TrimmedCopy()
-
 	// 使用相同的椭圆获取密钥对
 	curve := elliptic.P256()
 
@@ -200,7 +194,6 @@ func (tx *Transaction) Verify(prevTxs map[string]Transaction) bool {
 		// 上面是生成哈希的数据，所以要与签名时的数据完全一致
 		txCopy.TxHash = txCopy.Hash() // 要验证的数据
 		txCopy.Vins[vinId].PublicKey = nil
-
 		// 私钥ID
 		// 获取r, s(r和s长度相等，根据椭圆加密计算的结果)
 		// r, s代表签名
@@ -209,7 +202,6 @@ func (tx *Transaction) Verify(prevTxs map[string]Transaction) bool {
 		sigLen := len(vin.Signature)
 		r.SetBytes(vin.Signature[:(sigLen / 2)])
 		s.SetBytes(vin.Signature[(sigLen / 2):])
-
 		// 生成x,y(首先，签名是一个数字对，公钥是X,Y坐标组合，
 		// 在生成公钥时，需要将X Y坐标组合到一起，在验证的时候，需要将
 		// 公钥的X Y拆开)
@@ -220,12 +212,10 @@ func (tx *Transaction) Verify(prevTxs map[string]Transaction) bool {
 		y.SetBytes(vin.PublicKey[(pubkeyLen / 2):])
 		// 生成验证签名所需的公钥
 		rawPublicKey := ecdsa.PublicKey{Curve: curve, X: &x, Y: &y}
-
 		// 验证签名
 		if !ecdsa.Verify(&rawPublicKey, txCopy.TxHash, &r, &s) {
 			return false
 		}
 	}
-
 	return true
 }

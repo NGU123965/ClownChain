@@ -28,20 +28,17 @@ func StartServer(nodeID string) {
 	if nodeAddress != knowNodes[0] {
 		// 非主节点，向主节点发送请求同步数据
 		// sendVersion()
-		//	sendMessage(knowNodes[0], nodeAddress)
+		// sendMessage(knowNodes[0], nodeAddress)
 		sendVersion(knowNodes[0], bc)
 	}
-
 	// 主节点接收请求
 	for {
 		conn, err := listen.Accept()
 		if nil != err {
 			log.Panicf("connect to node failed! %v\n", err)
 		}
-
-		// 分出一个单独的goroutine来对请求进行处理
+		// goroutine处理请求
 		go handleConnection(conn, bc)
-
 	}
 }
 

@@ -12,5 +12,3 @@ func (cli *CLI) CreateWallets(nodeID string) {
 	wallets.CreateWallet(nodeID)
 	fmt.Printf("wallets : %v\n", wallets)
 }
-
-// Wallets_3000.dat

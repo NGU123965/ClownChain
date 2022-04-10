@@ -2,8 +2,7 @@ package cli
 
 import "ClownChain/server"
 
-// 实现启动服务的功能
-
+// 启动网络服务
 func (cli *CLI) startNode(nodeID string) {
 	server.StartServer(nodeID)
 }

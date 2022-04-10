@@ -103,7 +103,6 @@ func (utxoSet *UTXOSet) FindUTXOWithAddress(address string) []*UTXO {
 				txOutputs := DeserializeTXOutputs(v)
 				for _, utxo := range txOutputs.UTXOS {
 					if utxo.Output.UnLockScriptPubkeyWithAddress(address) {
-
 						//utxo_single := UTXO{Output:utxo}
 						utxos = append(utxos, utxo)
 					}
@@ -210,7 +209,6 @@ func (utxoSet *UTXOSet) FindUnPackageSpendableUTXOS(from string, txs []*Transact
 								utxo := &UTXO{tx.TxHash, index, vout}
 								unUTXOs = append(unUTXOs, utxo)
 							}
-
 						} else {
 							// 该交易没有包含已花费输出
 							utxo := &UTXO{tx.TxHash, index, vout}
@@ -255,7 +253,6 @@ func (utxoSet *UTXOSet) Update() {
 						}
 					}
 				}
-
 				// 当前区块的最新的输出
 				newOutputs := TXOutputs{}
 				for i, out := range tx.Vouts {
@@ -283,7 +280,6 @@ func (utxoSet *UTXOSet) Updat1() {
 	var inputs []*TxInput // 存放最新区块的所有输入
 	// 获取需要存入utxo table中的UTXO
 	outsMap := make(map[string]*TXOutputs)
-
 	// 2. 查找需要删除的数据
 	for _, tx := range latest_block.Txs {
 		// 遍历输入
@@ -314,7 +310,6 @@ func (utxoSet *UTXOSet) Updat1() {
 			outsMap[txHash] = &TXOutputs{utxos}
 		}
 	}
-
 	// 4. 更新
 	err := utxoSet.BlockChain.DB.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(utxoTableName))
@@ -361,10 +356,8 @@ func (utxoSet *UTXOSet) Updat1() {
 				}
 			}
 		}
-
 		return nil
 	})
-
 	if nil != err {
 		log.Printf("update the UTXOMap to utxo table failed! %v", err)
 	}

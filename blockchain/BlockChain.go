@@ -17,10 +17,10 @@ import (
 const dbName = "bc_%s.db"       //存储区块数据的数据库文件
 const blockTableName = "blocks" //表(桶)名称
 
-// BlockChain 区块链基本结构
+// BlockChain 区块链结构
 type BlockChain struct {
 	DB  *bolt.DB // 数据库
-	Tip []byte   //最新区块的哈希值
+	Tip []byte   // 最新区块的哈希值
 }
 
 // DbExists 判断数据库是否存在
@@ -35,8 +35,8 @@ func DbExists(nodeID string) bool {
 // CreateBlockChainWithGenesisBlock 初始化区块链
 func CreateBlockChainWithGenesisBlock(address string, nodeID string) *BlockChain {
 	if DbExists(nodeID) {
-		fmt.Println("创世区块已存在...")
-		os.Exit(1) // 退出
+		fmt.Println("The genesis block has been generated！")
+		os.Exit(1)
 	}
 	dbName := fmt.Sprintf(dbName, nodeID)
 	// 创建或者打开数据
@@ -115,10 +115,10 @@ func CreateBlockChainWithGenesisBlock(address string, nodeID string) *BlockChain
 
 // PrintChain 遍历输出区块链所有区块的信息
 func (bc *BlockChain) PrintChain() {
-	fmt.Println("区块链完整信息...")
+	fmt.Println("The total information of  ClownChain...")
 	var curBlock *Block
 	///var currentHash []byte = bc.Tip // 获取最新区块的哈希
-	// 创建一个迭代器对象
+	// 创建区块链迭代器对象
 	bcit := bc.Iterator()
 	for {
 		fmt.Printf("----------------------------------------\n")
@@ -143,7 +143,6 @@ func (bc *BlockChain) PrintChain() {
 			}
 		}
 		fmt.Printf("\tNonce : %d\n", curBlock.Nonce)
-
 		// 判断是否已经遍历到创世区块
 		var hashInt big.Int
 		hashInt.SetBytes(curBlock.PrevBlockHash)
@@ -152,7 +151,6 @@ func (bc *BlockChain) PrintChain() {
 		}
 		//currentHash = curBlock.PrevBlockHash
 	}
-
 }
 
 // BlockchainObject 返回Blockchain 对象
@@ -202,7 +200,7 @@ func (bc *BlockChain) MineNewBlock(from []string, to []string, amount []string, 
 	bc.DB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(blockTableName))
 		if nil != b {
-			hash := b.Get([]byte("l"))           // 获取最新区块哈希值(当作新生区块的prevHash)
+			hash := b.Get([]byte("l"))           // 获取最新区块哈希值(用于新区块的prevHash)
 			blockBytes := b.Get(hash)            // 得到最新区块(为了获取区块高度)
 			block = DeserializeBlock(blockBytes) // 反序列化
 		}
@@ -214,14 +212,14 @@ func (bc *BlockChain) MineNewBlock(from []string, to []string, amount []string, 
 	for _, tx := range txs {
 		// 验证每一笔交易
 		// 第二笔交易引用了第一笔交易的UTXO作为输入
-		// 第一笔交易还没有被打包到区块中，所以添加到缓存列表中
+		// 第一笔交易还没有被打包到区块中，故添加到缓存列表中
 		fmt.Printf("txHash : %v\n", tx.TxHash)
 		if !bc.VerifyTransaction(tx, _txs) {
 			log.Panicf("ERROR : tx [%x] verify failed!", tx)
 		}
 		_txs = append(_txs, tx)
 	}
-	// 生成新的区块
+	// 生成新区块
 	block = NewBlock(block.Heigth+1, block.Hash, txs)
 	// 持久化新区块
 	bc.DB.Update(func(tx *bolt.Tx) error {
@@ -333,7 +331,6 @@ func (bc *BlockChain) UnUTXOS(address string, txs []*transaction.Transaction) []
 		block := blockIterator1.Next() // 获取每一个区块信息
 		for _, tx := range block.Txs { // 遍历每个区块中的交易
 			fmt.Printf("blockhash : %x, tx of block : %v\n", block.Hash, tx.TxHash)
-
 		workDbTx:
 			// 再查找输出
 			for index, vout := range tx.Vouts {
@@ -362,11 +359,9 @@ func (bc *BlockChain) UnUTXOS(address string, txs []*transaction.Transaction) []
 							unUTXOS = append(unUTXOS, utxo)
 						}
 					}
-
 				}
 			}
 		}
-
 		// 退出循环条件
 		var hashInt big.Int
 		hashInt.SetBytes(block.PrevBlockHash)
@@ -374,7 +369,6 @@ func (bc *BlockChain) UnUTXOS(address string, txs []*transaction.Transaction) []
 			break
 		}
 	}
-
 	return unUTXOS
 }
 
@@ -390,7 +384,7 @@ func (bc *BlockChain) getBalance(address string) int64 {
 
 // FindSpendableUTXO 转账
 // 通过查找可用的UTXO(遍历)，超过需要的资金即可中断
-func (bc *BlockChain) FindSpendableUTXO(from string, amout int64, txs []*transaction.Transaction) (int64, map[string][]int) {
+func (bc *BlockChain) FindSpendableUTXO(from string, amount int64, txs []*transaction.Transaction) (int64, map[string][]int) {
 	// 查找出来的UTXO的值总和
 	var value int64
 	// 可用的UTXO
@@ -400,17 +394,17 @@ func (bc *BlockChain) FindSpendableUTXO(from string, amout int64, txs []*transac
 	fmt.Printf("len:%d, all utxos : %v\n", len(utxos), utxos)
 	// 遍历
 	for _, utxo := range utxos {
-		// utxo.Output.Value >= amout
+		// utxo.Output.Value >= amount
 		fmt.Printf("utxo.TxHash : %x\n", utxo.TxHash)
 		value += utxo.Output.Value
 		hash := hex.EncodeToString(utxo.TxHash)
 		spendableUTXO[hash] = append(spendableUTXO[hash], utxo.Index)
-		if value >= amout {
+		if value >= amount {
 			break
 		}
 	}
-	if value < amout {
-		fmt.Printf("%s 余额不足\n", from)
+	if value < amount {
+		fmt.Printf("%s insufficient balance\n", from)
 		os.Exit(1)
 	}
 	return value, spendableUTXO
@@ -438,7 +432,6 @@ func (bc *BlockChain) FindTransaction(ID []byte, txs []*transaction.Transaction)
 			return *tx
 		}
 	}
-
 	bcit := bc.Iterator()
 	for {
 		block := bcit.Next()
@@ -479,7 +472,6 @@ func (bc *BlockChain) SignTransaction(tx *transaction.Transaction, privateKey ec
 // FindUTXOMap 查找所有UTXO
 func (bc *BlockChain) FindUTXOMap() map[string]*transaction.TXOutputs {
 	bcit := bc.Iterator()
-
 	// 存储已花费的UTXO的信息
 	// key -> value
 	// key : 代表指定交易哈希
@@ -490,7 +482,6 @@ func (bc *BlockChain) FindUTXOMap() map[string]*transaction.TXOutputs {
 	// key->指定交易哈希
 	// value->该交易中所有的未花费输出
 	utxoMaps := make(map[string]*transaction.TXOutputs)
-
 	for {
 		block := bcit.Next()
 		// 遍历每个区块中的交易
@@ -510,7 +501,6 @@ func (bc *BlockChain) FindUTXOMap() map[string]*transaction.TXOutputs {
 			} else {
 				fmt.Printf("coinbase tx-hash : %x\n", tx.TxHash)
 			}
-
 			// 遍历输出
 			txHash := hex.EncodeToString(tx.TxHash)
 		WorkOutLoop:
@@ -529,7 +519,6 @@ func (bc *BlockChain) FindUTXOMap() map[string]*transaction.TXOutputs {
 							}
 						}
 					}
-
 					if isSpent == false {
 						// isSpent为假，说明该交易相关的输入中没输入能够与当前判断的out相匹配
 						utxo := transaction.UTXO{TxHash: tx.TxHash, Index: index, Output: out}
@@ -544,10 +533,8 @@ func (bc *BlockChain) FindUTXOMap() map[string]*transaction.TXOutputs {
 
 				}
 			}
-
 			utxoMaps[txHash] = txOutputs // 该交易所有的UTXO
 		}
-
 		// 退出条件
 		var hashInt big.Int
 		hashInt.SetBytes(block.PrevBlockHash)
@@ -555,7 +542,6 @@ func (bc *BlockChain) FindUTXOMap() map[string]*transaction.TXOutputs {
 			break
 		}
 	}
-
 	return utxoMaps
 }
 
@@ -567,7 +553,6 @@ func (bc *BlockChain) GetBlockHashes() [][]byte {
 	for {
 		block := blockIterator.Next()
 		blockHashes = append(blockHashes, block.Hash)
-
 		// 判断是否遍历到创世区块
 		var hashInt big.Int
 		hashInt.SetBytes(block.PrevBlockHash)
@@ -615,17 +600,14 @@ func (bc *BlockChain) AddBlock(block *Block) {
 			if nil != err {
 				log.Panicf("sync block failed! %v\n", err)
 			}
-
 			blockHash := b.Get([]byte("l"))
 			latestBlock := b.Get(blockHash)
 			blockDb := DeserializeBlock(latestBlock)
-
 			if blockDb.Heigth < block.Heigth {
 				_ = b.Put([]byte("l"), block.Hash)
 				bc.Tip = block.Hash
 			}
 		}
-
 		return nil
 	})
 	if nil != err {

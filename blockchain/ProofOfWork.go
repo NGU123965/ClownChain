@@ -27,16 +27,13 @@ func NewProofOfWork(block *Block) *ProofOfWork {
 	// 1 << 6
 	//0010 0000 = 64
 	target = target.Lsh(target, 256-targetBit)
-
 	return &ProofOfWork{block, target}
 }
 
 // Run 开始工作量证明
 func (proofOfWork *ProofOfWork) Run() ([]byte, int64) {
-
-	var nonce = 0     // 碰撞次数
-	var hash [32]byte // 生成的哈希值
-
+	var nonce = 0       // 碰撞次数
+	var hash [32]byte   // 生成的哈希值
 	var hashInt big.Int // 存储哈希转换之后生成的数据，最终和target数据进行比较
 	for {
 		// 1. 数据拼接
@@ -64,6 +61,5 @@ func (proofOfWork *ProofOfWork) prepareData(nonce int) []byte {
 		utils.IntToHex(int64(nonce)),
 		utils.IntToHex(targetBit),
 	}, []byte{})
-
 	return data
 }

@@ -17,7 +17,6 @@ func (cli *CLI) send(from []string, to []string, amount []string, nodeID string)
 	blockchain := blockchain.BlockchainObject(nodeID) // 获取区块链对象
 	defer blockchain.DB.Close()
 	blockchain.MineNewBlock(from, to, amount, nodeID)
-
 	utxoSet := &transaction.UTXOSet{BlockChain: blockchain}
 	utxoSet.Update()
 }

@@ -9,25 +9,24 @@ import (
 	"time"
 )
 
-// Block 实现一个最基本的区块结构
+// Block 区块结构
 type Block struct {
-	TimeStamp     int64  // 区块时间戳，区块产生的时间
-	Heigth        int64  // 区块高度(索引、号码)，代表当前区块的高度
-	PrevBlockHash []byte // 前一个区块(父区块)的哈希
-	Hash          []byte // 当前区块的哈希
-	//Data			[]byte		// 交易数据
-	Txs   []*transaction.Transaction // 交易数据
-	Nonce int64                      // 用于生成工作量证明的哈希
+	TimeStamp     int64                      // 区块时间戳
+	Heigth        int64                      // 区块高度
+	PrevBlockHash []byte                     // 父区块哈希
+	Hash          []byte                     // 当前区块哈希
+	Txs           []*transaction.Transaction // 交易数据
+	Nonce         int64                      // 随机值（PoW）
 }
 
-// NewBlock 创建新的区块
+// NewBlock 创建新区块
 func NewBlock(height int64, prevBlockHash []byte, txs []*transaction.Transaction) *Block {
 	fmt.Println("NewBlock...")
 	var block Block
 	block = Block{Heigth: height, PrevBlockHash: prevBlockHash, Txs: txs, TimeStamp: time.Now().Unix()}
 	//block.SetHash() // 生成区块当前哈希
 	pow := NewProofOfWork(&block)
-	hash, nonce := pow.Run() // 解题(执行工作量证明算法)
+	hash, nonce := pow.Run() // 工作量证明
 	block.Hash = hash
 	block.Nonce = nonce
 	return &block
@@ -49,10 +48,10 @@ func CreateGenesisBlock(txs []*transaction.Transaction) *Block {
 	return NewBlock(1, nil, txs)
 }
 
-// Serialize 序列化，将区块结构序列化为[]byte（字节数组）
+// Serialize 序列化，将区块结构序列化为[]byte
 func (block *Block) Serialize() []byte {
 	var result bytes.Buffer
-	encoder := gob.NewEncoder(&result)            //新建eoncode对象
+	encoder := gob.NewEncoder(&result)            //新建encode对象
 	if err := encoder.Encode(block); nil != err { // 编码
 		log.Panicf("serialize the block to byte failed! %v\n", err)
 	}
@@ -78,6 +77,6 @@ func (block *Block) HashTransactions() []byte {
 	mTree := NewMerkleTree(transactions)
 	//// sha256
 	//txHash := sha256.Sum256(bytes.Join(txHashes, []byte{}))
-	// 改成Merkle树的根哈希
+	// 改成Merkle树根哈希
 	return mTree.RootNode.Data
 }

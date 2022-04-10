@@ -100,7 +100,6 @@ func (cli *CLI) Run() {
 		if nil != err {
 			log.Panicf("parse cmd of send failed! %v\n", err)
 		}
-
 	case "printchain":
 		err := printChainCmd.Parse(os.Args[2:])
 		if nil != err {
@@ -163,7 +162,6 @@ func (cli *CLI) Run() {
 			PrintUsage()
 			os.Exit(1)
 		}
-
 		cli.send(utils.JSONToArray(*flagFromArg), utils.JSONToArray(*flagToArg), utils.JSONToArray(*flagAmount), nodeID) // 发送交易
 	}
 	//// 添加区块命令
@@ -174,12 +172,10 @@ func (cli *CLI) Run() {
 	//	}
 	//	cli.addBlock([]*Transaction{})
 	//}
-
 	// 输出区块链信息命令
 	if printChainCmd.Parsed() {
 		cli.printchain(nodeID)
 	}
-
 	// 创建区块链
 	if createBlCWithGenesisCmd.Parsed() {
 		if *flagCreateBlockchainWithAddress == "" {

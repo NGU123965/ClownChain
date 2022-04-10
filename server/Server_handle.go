@@ -25,7 +25,6 @@ func handleVersion(request []byte, bc *blockchain.BlockChain) {
 	if nil != err {
 		log.Panicf("decode the version cmd failed! %v\n", err)
 	}
-
 	// 获取区块高度
 	bestHeight := bc.GetBestHeight()
 	versionHeight := data.BestHeigth
@@ -90,7 +89,6 @@ func handleGetData(request []byte, bc *blockchain.BlockChain) {
 	if nil != err {
 		log.Panicf("decode the GetData cmd failed! %v\n", err)
 	}
-
 	// 获取指定ID的区块信息 get-block(id)
 	block, err := bc.GetBlock(data.ID)
 	if nil != err {
@@ -116,7 +114,6 @@ func handleBlock(request []byte, bc *blockchain.BlockChain) {
 	block := blockchain.DeserializeBlock(blockBytes)
 	// 添加区块到区块链
 	bc.AddBlock(block)
-
 	// 更新UTXO
 	utxoSet := &transaction.UTXOSet{BlockChain: bc}
 	utxoSet.Update()
